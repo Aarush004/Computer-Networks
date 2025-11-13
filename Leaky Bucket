@@ -1,0 +1,68 @@
+# Leaky Bucket Algorithm Simulation (final version)
+# Starts at 0s, shows total input/output/dropped/final packets
+
+def leaky_bucket(leak_rate, bucket_capacity, packet_arrivals):
+    time = -1
+    bucket_content = 0
+    total_arrived = 0       # total packets generated/input
+    total_dropped = 0
+    total_leaked = 0        # total packets transmitted/output
+
+    # Table header
+    print(f"{'Time(s)':<8}{'Packets Arriving':<18}{'Packets in Bucket Before Leak':<32}"
+          f"{'Leak':<8}{'Bucket After Leak':<20}{'Packets Dropped':<18}{'Packets in Bucket Finally':<25}")
+    print("-" * 140)
+
+    # Simulation loop
+    for packets in packet_arrivals:
+        time += 1
+        total_arrived += packets
+
+        # Add incoming packets
+        bucket_content += packets
+
+        # Handle overflow
+        if bucket_content > bucket_capacity:
+            dropped = bucket_content - bucket_capacity
+            bucket_content = bucket_capacity
+        else:
+            dropped = 0
+
+        before_leak = bucket_content  # before leaking
+
+        # Leak packets
+        if bucket_content >= leak_rate:
+            leaked = leak_rate
+            bucket_content -= leak_rate
+        else:
+            leaked = bucket_content
+            bucket_content = 0
+
+        # Print row
+        print(f"{time:<8}{packets:<18}{before_leak:<32}{leaked:<8}"
+              f"{before_leak - leaked:<20}{dropped:<18}{bucket_content:<25}")
+
+        total_dropped += dropped
+        total_leaked += leaked
+
+    # Summary section
+    print("\nSummary:")
+    print(f"Total Packets Arrived (Produced/Input):   {total_arrived}")
+    print(f"Total Packets Leaked (Transmitted/Output): {total_leaked}")
+    print(f"Total Packets Dropped:                     {total_dropped}")
+    print(f"Packets Remaining in Bucket Finally:       {bucket_content}")
+
+
+# --- User Input ---
+bucket_capacity = int(input("Enter bucket capacity: "))
+leak_rate = int(input("Enter leak rate (packets/sec): "))
+num_seconds = int(input("Enter number of seconds to simulate: "))
+
+packet_arrivals = []
+for i in range(num_seconds):
+    pkt = int(input(f"Packets arriving at second {i}: "))  # time starts at 0
+    packet_arrivals.append(pkt)
+
+# Run simulation
+print("\nLeaky Bucket Simulation:\n")
+leaky_bucket(leak_rate, bucket_capacity, packet_arrivals)
