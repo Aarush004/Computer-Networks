@@ -1,0 +1,63 @@
+# Generic CRC Error Detection with user input
+# Displays generator, dividend, transmitted frame, CRC, and error status
+
+def crc_error_detection(message_bits, generator_bits):
+    n = len(generator_bits) - 1  # Degree of polynomial
+
+    # Step 1: Append n zeros to message
+    dividend = message_bits + [0] * n
+
+    # Show dividend after adding zeros
+    print("Dividend after appending zeros:", dividend)
+
+    # Step 2: Perform Modulo-2 Division (XOR)
+    for i in range(len(message_bits)):
+        if dividend[i] == 1:
+            for j in range(len(generator_bits)):
+                dividend[i + j] ^= generator_bits[j]
+
+    # Step 3: Extract remainder (CRC)
+    crc = dividend[-n:]
+
+    # Step 4: Form transmitted frame
+    transmitted_frame = message_bits + crc
+
+    # ---------------- Receiver Side ----------------
+    received_frame = transmitted_frame.copy()
+
+    # Step 5: Repeat division at receiver
+    for i in range(len(message_bits)):
+        if received_frame[i] == 1:
+            for j in range(len(generator_bits)):
+                received_frame[i + j] ^= generator_bits[j]
+
+    # Step 6: Check remainder for error
+    remainder_check = received_frame[-n:]
+    error_detected = any(remainder_check)  # True if any bit is 1
+
+    return {
+        "generator": generator_bits,
+        "dividend_after_zeros": message_bits + [0] * n,
+        "transmitted_frame": transmitted_frame,
+        "crc": crc,
+        "error_detected": error_detected
+    }
+
+
+# ---------------- User Input ----------------
+message_input = input("Enter message bits (e.g., 11010011101100): ")
+generator_input = input("Enter generator polynomial bits (e.g., 10011): ")
+
+# Convert string inputs to list of integers
+message_bits = [int(bit) for bit in message_input]
+generator_bits = [int(bit) for bit in generator_input]
+
+# Run CRC algorithm
+result = crc_error_detection(message_bits, generator_bits)
+
+# ---------------- Output ----------------
+print("\nGenerator:", result["generator"])
+print("Dividend after adding zeros:", result["dividend_after_zeros"])
+print("Transmitted Frame (Message + CRC):", result["transmitted_frame"])
+print("CRC Remainder:", result["crc"])
+print("Error Detected:", result["error_detected"])
